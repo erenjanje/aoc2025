@@ -5,18 +5,23 @@ import std::time::clock;
 
 fn int main(String[] args) => @pool() {
 	ulong total = 0;
+	ulong real_total = 0;
 	const int REPEAT = 10000;
 	Clock total_time;
 	while(try String bank = io::treadline()) {
 		Clock start = clock::now();
 		for(int i = 0; i < REPEAT; i++) {
-			total += process_bank_okn(bank, 12);
+			ulong result = process_bank_okn(bank, 12);
+			if(i == 0) {
+				real_total += result;
+			}
+			total += result;
 		}
 		Clock end = clock::now();
 		NanoDuration diff = end - start;
 		total_time += diff;
 	}
-	io::printfn("Result %d in Time: %gms", total, (double)total_time / ((double)REPEAT * 1e6));
+	io::printfn("Result %d (%d) in average time: %fms", real_total, total, (double)total_time / ((double)REPEAT * 1e6));
 	return 0;
 }
 
