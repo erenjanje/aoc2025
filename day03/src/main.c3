@@ -1,17 +1,80 @@
 module day03;
 import std::io;
 import std::math;
+import std::time;
 
 fn int main(String[] args) => @pool() {
 	ulong total = 0;
+	const int REPEAT = 10000;
+	Time start = time::now();
 	while(try String bank = io::treadline()) {
-		total += process_bank(bank, 12);
+		for(int i = 0; i < REPEAT; i++) {
+			total += process_bank_on(bank, 12);
+		}
 	}
-	io::printfn("%d", total);
+	Time end = time::now();
+	Duration diff = end - start;
+	io::printfn("Time: %d", (double)diff / (double)REPEAT);
+	io::printfn("Result: %d", total);
 	return 0;
 }
 
-fn ulong process_bank(String bank, int enabled_battery_count) {
+struct Histogram {
+	short[10] histogram;
+	short current_max;
+}
+
+fn Histogram histogram_new(String bank) {
+	Histogram ret;
+	foreach(char c : bank) {
+		ret.add(c);
+	}
+	return ret;
+}
+
+fn void Histogram.add(&self, char c) {
+	short digit = c - '0';
+	self.histogram[digit] += 1;
+	if(digit > self.current_max) {
+		self.current_max = digit;
+	}
+}
+
+fn short Histogram.remove(&self, char c) {
+	short digit = c - '0';
+	self.histogram[digit] -= 1;
+	bool ret = self.current_max == digit;
+	if(self.histogram[digit] == 0 && self.current_max == digit) {
+		while(self.current_max > 0 && self.histogram[self.current_max] == 0) {
+			self.current_max -= 1;
+		}
+	}
+	return ret ? digit : 0;
+}
+
+fn ulong process_bank_on(String bank, int enabled_battery_count) {
+	ulong joltage = 0;
+	uptr next = bank.len - enabled_battery_count;
+	short read_digits = 0;
+	Histogram histogram = histogram_new(bank[..next]);
+	foreach(char c : bank) {
+		short digit = histogram.remove(c);
+		if(digit) {
+			read_digits += 1;
+			joltage = 10 * joltage + digit;
+			if(next < bank.len - 1) {
+				next += 1;
+				histogram.add(bank[next]);
+			}
+			if(read_digits == enabled_battery_count) {
+				break;
+			}
+		}
+	}
+	return joltage;
+}
+
+fn ulong process_bank_okn(String bank, int enabled_battery_count) {
 	ulong joltage = 0;
 	uptr start = 0;
 	for(int i = 0; i < enabled_battery_count; i++) {
