@@ -1,21 +1,22 @@
 module day03;
 import std::io;
 import std::math;
-import std::time;
+import std::time::clock;
 
 fn int main(String[] args) => @pool() {
 	ulong total = 0;
 	const int REPEAT = 10000;
-	Time start = time::now();
+	Clock total_time;
 	while(try String bank = io::treadline()) {
+		Clock start = clock::now();
 		for(int i = 0; i < REPEAT; i++) {
-			total += process_bank_on(bank, 12);
+			total += process_bank_okn(bank, 12);
 		}
+		Clock end = clock::now();
+		NanoDuration diff = end - start;
+		total_time += diff;
 	}
-	Time end = time::now();
-	Duration diff = end - start;
-	io::printfn("Time: %d", (double)diff / (double)REPEAT);
-	io::printfn("Result: %d", total);
+	io::printfn("Result %d in Time: %gms", total, (double)total_time / ((double)REPEAT * 1e6));
 	return 0;
 }
 
