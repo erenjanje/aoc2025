@@ -3,20 +3,23 @@ import std::io;
 import std::math;
 
 fn int main(String[] args) => @pool() {
-	int total = 0;
+	ulong total = 0;
 	while(try String bank = io::treadline()) {
-		total += process_bank(bank);
+		total += process_bank(bank, 12);
 	}
 	io::printfn("%d", total);
 	return 0;
 }
 
-fn int process_bank(String bank) {
-	uptr first_digit_position = max_of_bank(bank[..(bank.len - 2)]);
-	uptr second_digit_position = max_of_bank(bank[(first_digit_position+1)..]) + first_digit_position + 1;
-	char first_digit_char = bank[first_digit_position];
-	char second_digit_char = bank[second_digit_position];
-	int joltage = (first_digit_char - '0') * 10 + second_digit_char - '0';
+fn ulong process_bank(String bank, int enabled_battery_count) {
+	ulong joltage = 0;
+	uptr start = 0;
+	for(int i = 0; i < enabled_battery_count; i++) {
+		uptr digit_position = max_of_bank(bank[start..^(enabled_battery_count - i)]) + start;
+		char digit = bank[digit_position];
+		start = digit_position + 1;
+		joltage = 10 * joltage + (long)(digit - '0');
+	}
 	return joltage;
 }
 
