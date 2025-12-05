@@ -40,26 +40,3 @@ fn RangeList RangeList.merge(&self, Allocator allocator = tmem) {
 
 	return ret;
 }
-
-fn RangeList RangeList.slow_merge(&self, Allocator allocator = tmem) {
-	RangeList ret;
-	ret.init(allocator);
-
-	foreach(candidate_range : self) {
-		bool merged = false;
-		for(usz i = 0; i < ret.len(); i++) {
-			if(ret[i].intersects(candidate_range)) {
-				ret[i] = ret[i].merge(candidate_range);
-				merged = true;
-				break;
-			}
-		}
-		if(!merged) {
-			ret.push(candidate_range);
-		} else {
-			ret = ret.merge();
-		}
-	}
-
-	return ret;
-}

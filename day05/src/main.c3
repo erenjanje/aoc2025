@@ -62,4 +62,25 @@ fn int main(String[] args) => @pool() {
 	return 0;
 }
 
+fn RangeList{ulong} RangeList{ulong}.slow_merge(&self, Allocator allocator = tmem) {
+	RangeList{ulong} ret;
+	ret.init(allocator);
 
+	foreach(candidate_range : self) {
+		bool merged = false;
+		for(usz i = 0; i < ret.len(); i++) {
+			if(ret[i].intersects(candidate_range)) {
+				ret[i] = ret[i].merge(candidate_range);
+				merged = true;
+				break;
+			}
+		}
+		if(!merged) {
+			ret.push(candidate_range);
+		} else {
+			ret = ret.slow_merge();
+		}
+	}
+
+	return ret;
+}
