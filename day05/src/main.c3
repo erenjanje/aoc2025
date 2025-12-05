@@ -5,8 +5,10 @@ import std::collections::list;
 import std::time::clock;
 import range_list;
 
+alias InnerRange = Range{ulong};
+
 fn int main(String[] args) => @pool() {
-	RangeList{ulong} ranges;
+	List{InnerRange} ranges;
 	ranges.tinit();
 	while(try String line = io::treadline()) {
 		if(line.len == 0) { break; }
@@ -15,72 +17,75 @@ fn int main(String[] args) => @pool() {
 		ranges.push(range);
 	}
 
-	ulong naive = 0;
-	ulong fast = 0;
-	@pool() {
-		RangeList{ulong} temp;
+	List{ulong} queries;
+	queries.tinit();
+
+	while(try String line = io::treadline()) {
+		queries.push(line.to_ulong())!!;
+	}
+
+	{
 		Clock start = clock::now();
 		for(int i = 0; i < 10000; i++) {
-			temp = ranges.slow_merge();
+			RangeList{ulong} ids = range_list::new(ranges.array_view());
+			ulong total = 0;
+			foreach(range : ids.list) {
+				total += range.len();
+			}
 		}
 		Clock end = clock::now();
-		naive = (ulong)(end - start);
-	};
+		ulong took = (ulong)(end - start);
+		io::printfn("Construction Took\t%gms", (double)took * 1e-6 / 10000);
+	}
 
-	@pool() {
-		RangeList{ulong} temp;
+	RangeList{ulong} ids = range_list::new(ranges.array_view());
+
+	{
 		Clock start = clock::now();
-		for(int i = 0; i < 10000; i++) {
-			temp = ranges.merge();
+		for(int i = 0; i < 10000000; i++) {
+			int result = 0;
+			foreach(id : queries) {
+				result += (int)ids.contains(id);
+			}
 		}
 		Clock end = clock::now();
-		fast = (ulong)(end - start);
-	};
-
-	io::printfn("Naive merge\t%gms", (double)naive * 1e-6);
-	io::printfn("Fast merge\t%gms", (double)fast * 1e-6);
-	io::printfn("Speedup factor\t%gx", (double)naive / (double)fast);
-	ranges = ranges.merge();
+		ulong took = (ulong)(end - start);
+		io::printfn("Query Took\t\t%gms", (double)took * 1e-6 / 10000000);
+	}
 
 	int result = 0;
 	ulong total = 0;
-	foreach(range : ranges) {
+	foreach(range : ids.list) {
 		total += range.len();
 	}
-	while(try String line = io::treadline()) {
-		ulong query = line.to_ulong()!!;
-		foreach(range : ranges) {
-			if(range.contains(query)) {
-				result += 1;
-				break;
-			}
-		}
+	foreach(id : queries) {
+		result += (int)ids.contains(id);
 	}
-	// io::printn(ranges);
+
 	io::printfn("Part 1: %d", result);
 	io::printfn("Part 2: %d", total);
 	return 0;
 }
 
-fn RangeList{ulong} RangeList{ulong}.slow_merge(&self, Allocator allocator = tmem) {
-	RangeList{ulong} ret;
-	ret.init(allocator);
+// fn RangeList{ulong} RangeList{ulong}.slow_merge(&self, Allocator allocator = tmem) {
+// 	RangeList{ulong} ret;
+// 	ret.init(allocator);
 
-	foreach(candidate_range : self) {
-		bool merged = false;
-		for(usz i = 0; i < ret.len(); i++) {
-			if(ret[i].intersects(candidate_range)) {
-				ret[i] = ret[i].merge(candidate_range);
-				merged = true;
-				break;
-			}
-		}
-		if(!merged) {
-			ret.push(candidate_range);
-		} else {
-			ret = ret.slow_merge();
-		}
-	}
+// 	foreach(candidate_range : self) {
+// 		bool merged = false;
+// 		for(usz i = 0; i < ret.len(); i++) {
+// 			if(ret[i].intersects(candidate_range)) {
+// 				ret[i] = ret[i].merge(candidate_range);
+// 				merged = true;
+// 				break;
+// 			}
+// 		}
+// 		if(!merged) {
+// 			ret.push(candidate_range);
+// 		} else {
+// 			ret = ret.slow_merge();
+// 		}
+// 	}
 
-	return ret;
-}
+// 	return ret;
+// }
