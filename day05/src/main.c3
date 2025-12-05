@@ -2,22 +2,45 @@ module day05;
 import std::io;
 import std::collections::range;
 import std::collections::list;
-
-alias IdRange = Range{ulong};
+import std::time::clock;
+import range_list;
 
 fn int main(String[] args) => @pool() {
-	List{IdRange} ranges;
+	RangeList{ulong} ranges;
 	ranges.tinit();
 	while(try String line = io::treadline()) {
 		if(line.len == 0) { break; }
 		String[] splitted = line.tsplit("-");
-		IdRange range = (IdRange){.start = splitted[0].to_ulong(), .end = splitted[1].to_ulong()}!!;
+		Range{ulong} range = (Range{ulong}){.start = splitted[0].to_ulong(), .end = splitted[1].to_ulong()}!!;
 		ranges.push(range);
 	}
 
-	io::printn(ranges);
+	ulong naive = 0;
+	ulong fast = 0;
+	@pool() {
+		RangeList{ulong} temp;
+		Clock start = clock::now();
+		for(int i = 0; i < 10000; i++) {
+			temp = ranges.slow_merge();
+		}
+		Clock end = clock::now();
+		naive = (ulong)(end - start);
+	};
+
+	@pool() {
+		RangeList{ulong} temp;
+		Clock start = clock::now();
+		for(int i = 0; i < 10000; i++) {
+			temp = ranges.merge();
+		}
+		Clock end = clock::now();
+		fast = (ulong)(end - start);
+	};
+
+	io::printfn("Naive merge\t%gms", (double)naive * 1e-6);
+	io::printfn("Fast merge\t%gms", (double)fast * 1e-6);
+	io::printfn("Speedup factor\t%gx", (double)naive / (double)fast);
 	ranges = ranges.merge();
-	io::printn(ranges);
 
 	int result = 0;
 	ulong total = 0;
@@ -34,38 +57,9 @@ fn int main(String[] args) => @pool() {
 		}
 	}
 	// io::printn(ranges);
-	io::printn(result);
-	io::printn(total);
+	io::printfn("Part 1: %d", result);
+	io::printfn("Part 2: %d", total);
 	return 0;
 }
 
-fn bool IdRange.intersects(self, IdRange other)  {
-	return other.contains(self.start) || other.contains(self.end) || self.contains(other.start) || self.contains(other.end);
-}
 
-fn IdRange IdRange.merge(self, IdRange other) {
-	return (IdRange){.start = min(self.start, other.start), .end = max(self.end, other.end)};
-}
-
-fn List{IdRange} List{IdRange}.merge(self, Allocator allocator = tmem) {
-	List{IdRange} new_range;
-	new_range.init(allocator);
-
-	foreach(candidate_range : self) {
-		bool merged = false;
-		for(usz i = 0; i < new_range.len(); i++) {
-			if(new_range[i].intersects(candidate_range)) {
-				new_range[i] = new_range[i].merge(candidate_range);
-				merged = true;
-				break;
-			}
-		}
-		if(!merged) {
-			new_range.push(candidate_range);
-		} else {
-			new_range = new_range.merge();
-		}
-	}
-
-	return new_range;
-}
