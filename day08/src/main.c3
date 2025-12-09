@@ -4,41 +4,43 @@ import std::collections::list;
 import std::collections::set;
 import std::sort;
 
-struct Vertex {
-	long x;
-	long y;
-	long z;
+fn int main(String[] args) => @pool() {
+	io::printn(part2());
+	return 0;
 }
 
-fn ulong Vertex.distance2(self, Vertex other) {
-	long dx = self.x-other.x;
-	long dy = self.y-other.y;
-	long dz = self.z-other.z;
-	return (ulong)(dx*dx + dy*dy + dz*dz);
-}
+fn ulong part1() {
+	Vertex[] vertices = read_vertices();
+	Edge[] edges = vertices.calculate_edges();
+	sort::quicksort(edges, &Edge.cmp);
 
-struct Edge {
-	usz v1;
-	usz v2;
-	ulong dist;
-}
+	List{ConnectedComponent} components;
+	components.tinit(1000);
 
-fn usz? Vertex.to_format(&self, Formatter* formatter) @dynamic {
-	return formatter.printf("(%d, %d, %d)", self.x, self.y, self.z)!;
-}
-
-fn usz? Edge.to_format(&self, Formatter* formatter) @dynamic {
-	return formatter.printf("dist(%d, %d, %d)", self.v1, self.v2, self.dist)!;
-}
-
-fn int Edge.cmp(lhs, Edge rhs) {
-	if(lhs.dist == rhs.dist) {
-		return 0;
-	} else if(lhs.dist < rhs.dist) {
-		return -1;
-	} else {
-		return 1;
+	foreach(&edge : edges[:1000]) {
+		put_to_connected_components(&components, *edge);
 	}
+	sort::quicksort(&components, fn int(ConnectedComponent* lhs, ConnectedComponent* rhs) => -lhs.cmp(rhs));
+	ulong result = array::@reduce(components.array_view()[:3], 1, fn(accumulator, component, ulong) => accumulator * component.len());
+	return result;
+}
+
+fn ulong part2() {
+	Vertex[] vertices = read_vertices();
+	Edge[] edges = vertices.calculate_edges();
+	sort::quicksort(edges, &Edge.cmp);
+
+	List{ConnectedComponent} components;
+	components.tinit(1000);
+
+	foreach(&edge : edges) {
+		put_to_connected_components(&components, *edge);
+		if(components.len() == 1 && components[0].len() == vertices.len) {
+			return vertices[edge.v1].x * vertices[edge.v2].x;
+		}
+	}
+
+	return 0;
 }
 
 fn Vertex[] read_vertices(Allocator allocator = tmem) => @pool() {
@@ -67,35 +69,37 @@ fn Edge[] Vertex[].calculate_edges(vertices, Allocator allocator = tmem) {
 	return ret.to_array(allocator);
 }
 
+struct Vertex {
+	long x;
+	long y;
+	long z;
+}
+
+fn ulong Vertex.distance2(self, Vertex other) {
+	long dx = self.x-other.x;
+	long dy = self.y-other.y;
+	long dz = self.z-other.z;
+	return (ulong)(dx*dx + dy*dy + dz*dz);
+}
+fn usz? Vertex.to_format(&self, Formatter* formatter) @dynamic {
+	return formatter.printf("(%d, %d, %d)", self.x, self.y, self.z)!;
+}
+
+struct Edge {
+	usz v1;
+	usz v2;
+	ulong dist;
+}
+
+fn usz? Edge.to_format(&self, Formatter* formatter) @dynamic {
+	return formatter.printf("dist(%d, %d, %d)", self.v1, self.v2, self.dist)!;
+}
+
+fn int Edge.cmp(lhs, Edge rhs) => cmp(lhs.dist, rhs.dist);
+
 alias ConnectedComponent = HashSet{usz};
-
-fn int ConnectedComponent.cmp(&lhs, ConnectedComponent* rhs) {
-	if(lhs.len() == rhs.len()) {
-		return 0;
-	} else if(lhs.len() < rhs.len()) {
-		return -1;
-	} else {
-		return 1;
-	}
-}
-
-fn int main(String[] args) => @pool() {
-	Vertex[] vertices = read_vertices();
-	Edge[] edges = vertices.calculate_edges();
-	sort::quicksort(edges, &Edge.cmp);
-
-	List{ConnectedComponent} components;
-	components.tinit(1000);
-
-	foreach(&edge : edges[:1000]) {
-		put_to_connected_components(&components, *edge);
-	}
-	sort::quicksort(&components, fn int(ConnectedComponent* lhs, ConnectedComponent* rhs) => -lhs.cmp(rhs));
-	ulong result = array::@reduce(components.array_view()[:3], 1, fn(accumulator, component, ulong) => accumulator * component.len());
-	io::printn(result);
-
-	return 0;
-}
+fn int ConnectedComponent.cmp(&lhs, ConnectedComponent* rhs) => cmp(lhs.len(), rhs.len());
+fn int ConnectedComponent.rcmp(&lhs, ConnectedComponent* rhs) => rcmp(lhs.len(), rhs.len());
 
 fn void put_to_connected_components(List{ConnectedComponent}* components, Edge edge, Allocator allocator = tmem) {
 	isz found = -1;
@@ -122,4 +126,18 @@ fn void put_to_connected_components(List{ConnectedComponent}* components, Edge e
 		new_component.add_all((usz[]){edge.v1, edge.v2});
 		components.push(new_component);
 	}
+}
+
+fn int cmp(ulong l, ulong r) {
+	if(l == r) {
+		return 0;
+	} else if(l < r) {
+		return -1;
+	} else {
+		return 1;
+	}
+}
+
+fn int rcmp(ulong l, ulong r) {
+	return -cmp(l, r);
 }
