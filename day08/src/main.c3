@@ -5,17 +5,16 @@ import std::collections::set;
 import std::sort;
 
 struct Vertex {
-	int x;
-	int y;
-	int z;
-}
-
-macro bool Vertex.equals(self, Vertex other) @operator(==) {
-	return self.x == other.x && self.y == other.y && self.z == other.z;
+	long x;
+	long y;
+	long z;
 }
 
 fn ulong Vertex.distance2(self, Vertex other) {
-	return (ulong)((self.x-other.x)*(self.x-other.x) + (self.y-other.y)*(self.y-other.y) + (self.z-other.z)*(self.z-other.z));
+	long dx = self.x-other.x;
+	long dy = self.y-other.y;
+	long dz = self.z-other.z;
+	return (ulong)(dx*dx + dy*dy + dz*dz);
 }
 
 struct Edge {
@@ -84,12 +83,15 @@ fn int main(String[] args) => @pool() {
 	Vertex[] vertices = read_vertices();
 	Edge[] edges = vertices.calculate_edges();
 	sort::quicksort(edges, &Edge.cmp);
+	io::printn(edges);
 
 	List{ConnectedComponent} components;
 	components.tinit(1000);
 
 	foreach(&edge : edges[:1000]) {
 		put_to_connected_components(&components, *edge);
+		io::print(edge);
+		io::printn(components);
 	}
 	sort::quicksort(components.array_view(), fn int(ConnectedComponent* lhs, ConnectedComponent* rhs) => -lhs.cmp(rhs));
 	io::printn(components);
