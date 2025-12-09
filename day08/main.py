@@ -54,13 +54,9 @@ def part1():
     vertices: list[Vertex] = read_vertices()
     edges: list[Edge] = calculate_edges(vertices)
     components: list[ConnectedComponent] = []
-    for edge in edges:
-        if edge.v1 == 481 and edge.v2 == 854:
-            print(edge)
     edges.sort(key=lambda e: e.dist)
     for edge in edges[:1000]:
         put_to_connected_components(components, edge)
-        print(edge, components)
     components.sort(key=lambda component: -len(component))
     result: int = reduce(lambda accumulator, component: accumulator * len(component), components[:3], 1)
     print(result)

@@ -83,24 +83,15 @@ fn int main(String[] args) => @pool() {
 	Vertex[] vertices = read_vertices();
 	Edge[] edges = vertices.calculate_edges();
 	sort::quicksort(edges, &Edge.cmp);
-	io::printn(edges);
 
 	List{ConnectedComponent} components;
 	components.tinit(1000);
 
 	foreach(&edge : edges[:1000]) {
 		put_to_connected_components(&components, *edge);
-		io::print(edge);
-		io::printn(components);
 	}
-	sort::quicksort(components.array_view(), fn int(ConnectedComponent* lhs, ConnectedComponent* rhs) => -lhs.cmp(rhs));
-	io::printn(components);
-	ulong result = 1;
-	foreach(&component : components.array_view()[:3]) {
-		io::printf("%d ", component.len());
-		result *= component.len();
-	}
-	io::printn(" ");
+	sort::quicksort(&components, fn int(ConnectedComponent* lhs, ConnectedComponent* rhs) => -lhs.cmp(rhs));
+	ulong result = array::@reduce(components.array_view()[:3], 1, fn(accumulator, component, ulong) => accumulator * component.len());
 	io::printn(result);
 
 	return 0;
