@@ -10,6 +10,7 @@ alias LightState = BitSet{BITNUM};
 struct Machine {
     LightState lights;
     LightState[] button_wiring;
+    int[] joltages;
 }
 
 fn usz? LightState.to_format(&self, Formatter* formatter) @dynamic {
@@ -52,6 +53,15 @@ fn Machine parse_machine(String description, Allocator allocator = tmem) => @poo
             pushed[index] = true;
         }
         ret.button_wiring[i] = pushed;
+    }
+
+    usz start_of_joltages = end_of_wiring + 1;
+    usz end_of_joltages = description.len - 2;
+    String joltage_string = description[start_of_joltages..end_of_joltages];
+    String[] joltages_string = joltage_string.tsplit(",");
+    ret.joltages = allocator::new_array(allocator, int, joltages_string.len);
+    for(usz i = 0; i < joltages_string.len; i++) {
+        ret.joltages[i] = joltages_string[i].to_int()!!;
     }
 
     return ret;
