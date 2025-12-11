@@ -8,21 +8,20 @@ fn long part1() => @pool() {
     assert(graph.you != -1);
     assert(graph.out != -1);
     io::printn(graph);
-    HashMap{usz, long} visited;
-    visited.tinit();
-    return graph.find_all_paths(&visited, graph.you);
+    // HashMap{usz, long} visited;
+    // visited.tinit();
+    return graph.find_all_paths(graph.you);
 }
 
-fn long Graph.find_all_paths(self, HashMap{usz, long}* visited, usz current) {
+fn long Graph.find_all_paths(self, usz current) {
     if(current == self.out) {
         return 1;
     }
     long ret = 0;
 
     foreach(next : self.nodes[current].next) {
-        ret += self.find_all_paths(visited, next);
+        ret += self.find_all_paths(next);
     }
 
-    (*visited)[current] = ret;
     return ret;
 }

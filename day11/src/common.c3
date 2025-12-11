@@ -21,7 +21,7 @@ fn usz? Node.to_format(&self, Formatter* formatter) @dynamic {
 }
 
 fn usz? Graph.to_format(&self, Formatter* formatter) @dynamic {
-    return formatter.printf("(you: %d, out: %d) %s", self.you, self.out, self.nodes)!;
+    return formatter.printf("(you: %d, out: %d svr: %d dac: %d fft: %d) %s", self.you, self.out, self.svr, self.dac, self.fft, self.nodes)!;
 }
 
 fn Graph read_graph(Allocator allocator = tmem) => @pool() {
