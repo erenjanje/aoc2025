@@ -48,6 +48,11 @@ fn String Machine.get_optimization(&self, Allocator allocator = tmem) => @pool()
         ret.append_chars(string::tformat(" 0 <= x%d\n", i));
     }
 
+    ret.append_chars("Integers\n");
+    for(usz i = 0; i < self.button_wiring.len; i++) {
+        ret.append_chars(string::tformat(" x%d\n", i));
+    }
+
     ret.append_chars("End\n");
 
     return ret.str_view().copy(allocator);
